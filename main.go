@@ -14,7 +14,7 @@ import (
 // models
 type Link struct {
 	gorm.Model
-	SID string `gorm:"uniqueIndex, not null" json:"sid"`
+	SID string `gorm:"column:sid; uniqueIndex; not null" json:"sid"`
 	URL string `gorm:"not null" json:"url"`
 }
 
@@ -23,7 +23,8 @@ var db *gorm.DB
 // TODO : error handling at main func and database to not be global
 func main() {
 	e := echo.New()
-	db, err := gorm.Open(sqlite.Open("data.db"), &gorm.Config{})
+	var err error
+	db, err = gorm.Open(sqlite.Open("data.db"), &gorm.Config{})
 	if err != nil {
 		echo.NewHTTPError(http.StatusNotFound, "database not initialised")
 	}
@@ -43,7 +44,12 @@ func main() {
 
 // handlers
 func RedirectHandler(c echo.Context) error {
-	return nil
+	var link Link
+	id := c.Param("id")
+	if res := db.First(&link, "sid = ?", id); res.Error != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "The shortcode is invalid")
+	}
+	return c.Redirect(http.StatusMovedPermanently, link.URL)
 }
 
 func IndexHandler(c echo.Context) error {
@@ -68,8 +74,8 @@ func SubmitHandler(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "The data was not pushed")
 	}
-	return c.HTML(http.StatusOK,
-		"<p> The shortened code is </p>",
+	return c.HTML(http.StatusCreated,
+		"<p> The shortened code is </p><a href= /go/"+ID+">"+ID+"</a>",
 	)
 }
 
