@@ -4,8 +4,30 @@
 
 package db
 
+import (
+	"database/sql"
+	"time"
+)
+
 type Link struct {
-	ID  int64
-	Sid interface{}
-	Url interface{}
+	ID      int64
+	ShortID sql.NullString
+	OrigUrl string
+	Expiry  time.Time
+	UserID  int64
+}
+
+type Linkdatum struct {
+	ID         int64
+	AccessTime interface{}
+	E          interface{}
+	Country    sql.NullString
+	LinkID     int64
+}
+
+type User struct {
+	ID           int64
+	Username     string
+	HashPassword string
+	Email        string
 }

@@ -6,9 +6,6 @@ import (
 )
 
 func RegisterRoutes(e *echo.Echo, h *handlers.Handler) error {
-	e.GET("/go/:id", h.RedirectHandler)
-	e.GET("/", h.IndexHandler)
-	e.POST("/go/submit", h.SubmitHandler)
 
 	return nil
 }

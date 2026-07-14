@@ -11,6 +11,7 @@ import (
 	"github.com/haarshmap/go-url/pkg/routes"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
+	"github.com/redis/go-redis/v9"
 
 	_ "modernc.org/sqlite"
 )
@@ -45,5 +46,13 @@ func main() {
 	e.Use(middleware.Secure())
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {
 		e.Logger.Error("failed to start server", "error", err)
+	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:" + os.Getenv("RPORT"),
+		Password: "",
+	})
+	if err := rdb.Ping(ctx).Err(); err != nil {
+		e.Logger.Error("Connecting to redis: %v", "error", err)
 	}
 }

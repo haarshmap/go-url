@@ -9,73 +9,35 @@ import (
 	"context"
 )
 
-const checkID = `-- name: CheckID :one
-SELECT EXISTS(
-    SELECT 1
-    FROM link
-    WHERE id = ?
-    LIMIT 1
-)
+const dummyGet = `-- name: DummyGet :many
+SELECT id, short_id, orig_url, expiry, user_id FROM links
 `
 
-func (q *Queries) CheckID(ctx context.Context, id int64) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkID, id)
-	var exists bool
-	err := row.Scan(&exists)
-	return exists, err
-}
-
-const indexHandler = `-- name: IndexHandler :one
-INSERT INTO link (
-    SID, URL
-) VALUES (
-    ?, ?
-)
-RETURNING id, sid, url
-`
-
-type IndexHandlerParams struct {
-	Sid interface{}
-	Url interface{}
-}
-
-func (q *Queries) IndexHandler(ctx context.Context, arg IndexHandlerParams) (Link, error) {
-	row := q.db.QueryRowContext(ctx, indexHandler, arg.Sid, arg.Url)
-	var i Link
-	err := row.Scan(&i.ID, &i.Sid, &i.Url)
-	return i, err
-}
-
-const redirectHandler = `-- name: RedirectHandler :one
-SELECT URL
-FROM link
-WHERE SID = ? LIMIT 1
-`
-
-func (q *Queries) RedirectHandler(ctx context.Context, sid interface{}) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, redirectHandler, sid)
-	var url interface{}
-	err := row.Scan(&url)
-	return url, err
-}
-
-const submitHandler = `-- name: SubmitHandler :one
-UPDATE link
-SET SID = ?,
-    URL = ?
-WHERE id = ?
-RETURNING id, sid, url
-`
-
-type SubmitHandlerParams struct {
-	Sid interface{}
-	Url interface{}
-	ID  int64
-}
-
-func (q *Queries) SubmitHandler(ctx context.Context, arg SubmitHandlerParams) (Link, error) {
-	row := q.db.QueryRowContext(ctx, submitHandler, arg.Sid, arg.Url, arg.ID)
-	var i Link
-	err := row.Scan(&i.ID, &i.Sid, &i.Url)
-	return i, err
+func (q *Queries) DummyGet(ctx context.Context) ([]Link, error) {
+	rows, err := q.db.QueryContext(ctx, dummyGet)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Link
+	for rows.Next() {
+		var i Link
+		if err := rows.Scan(
+			&i.ID,
+			&i.ShortID,
+			&i.OrigUrl,
+			&i.Expiry,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
