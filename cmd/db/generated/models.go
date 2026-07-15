@@ -29,5 +29,5 @@ type User struct {
 	ID           int64
 	Username     string
 	HashPassword string
-	Email        string
+	Email        interface{}
 }

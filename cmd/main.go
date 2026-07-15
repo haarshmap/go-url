@@ -7,9 +7,10 @@ import (
 	"os"
 
 	db "github.com/haarshmap/go-url/cmd/db/generated"
-	"github.com/haarshmap/go-url/pkg/handlers"
-	"github.com/haarshmap/go-url/pkg/routes"
+	"github.com/haarshmap/go-url/internal/server"
+
 	"github.com/labstack/echo/v5"
+
 	"github.com/labstack/echo/v5/middleware"
 	"github.com/redis/go-redis/v9"
 
@@ -31,21 +32,25 @@ func main() {
 	defer database.Close()
 
 	if err := database.Ping(); err != nil {
-		e.Logger.Error("Failed to ping database", "error", err)
+		e.Logger.Error("Failed to ping database: %v", "error", err)
 	}
 
 	if _, err := database.ExecContext(ctx, ddl); err != nil {
-		e.Logger.Error("Failed to create tables", "error", err)
+		e.Logger.Error("Failed to create tables: %v", "error", err)
 	}
 
 	queries := db.New(database)
-	h := handlers.NewHandler(queries)
-	routes.RegisterRoutes(e, h)
+	h := server.NewHandler(queries)
+	server.RegisterRoutes(e, h)
+
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
+
+	//middleware for custom claims type
+
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {
-		e.Logger.Error("failed to start server", "error", err)
+		e.Logger.Error("failed to start server: %v", "error", err)
 	}
 
 	rdb := redis.NewClient(&redis.Options{

@@ -9,35 +9,47 @@ import (
 	"context"
 )
 
-const dummyGet = `-- name: DummyGet :many
-SELECT id, short_id, orig_url, expiry, user_id FROM links
+const createUser = `-- name: CreateUser :one
+INSERT INTO users (
+    username, hash_password, email
+) VALUES (
+    ?, ?, ?
+)
+RETURNING id, username, hash_password, email
 `
 
-func (q *Queries) DummyGet(ctx context.Context) ([]Link, error) {
-	rows, err := q.db.QueryContext(ctx, dummyGet)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Link
-	for rows.Next() {
-		var i Link
-		if err := rows.Scan(
-			&i.ID,
-			&i.ShortID,
-			&i.OrigUrl,
-			&i.Expiry,
-			&i.UserID,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+type CreateUserParams struct {
+	Username     string
+	HashPassword string
+	Email        interface{}
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.HashPassword, arg.Email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.HashPassword,
+		&i.Email,
+	)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, username, hash_password, email FROM users
+WHERE email = ?
+LIMIT 1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email interface{}) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.HashPassword,
+		&i.Email,
+	)
+	return i, err
 }

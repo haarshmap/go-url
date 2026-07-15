@@ -2,8 +2,7 @@ CREATE TABLE users (
      id INTEGER PRIMARY KEY,
      username TEXT NOT NULL,
      hash_password TEXT NOT NULL,
-     email TEXT NOT NULL
-
+     email TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE links (
