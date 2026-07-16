@@ -2,7 +2,9 @@ package server
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	db "github.com/haarshmap/go-url/cmd/db/generated"
 	"github.com/labstack/echo/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -26,6 +28,12 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "error while binding")
 	}
 
+	c.Logger().Info("after binding: ",
+		"username", req.Username,
+		"email", req.Email,
+		"password", req.Password,
+	)
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "error while creating hash")
@@ -38,55 +46,64 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 	}
 
 	user, err := h.queries.CreateUser(c.Request().Context(), params)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "user failed to be created")
+	}
 
 	return c.JSON(http.StatusCreated, user)
 }
 
-// func (h *Handler) LoginHandler(c *echo.Context) error {
-// 	var req RegisterRequest
+func (h *Handler) LoginHandler(c *echo.Context) error {
+	var req RegisterRequest
 
-// 	username := c.FormValue(req.Username)
-// 	password := c.FormValue(req.Password)
-// 	email := c.Param(req.Email)
-// 	user, err := h.queries.GetUserByEmail(c.Request().Context(), email)
-// 	if err != nil {
-// 		return echo.NewHTTPError(http.StatusBadRequest, "user not found")
-// 	}
-// 	passcheck := bcrypt.CompareHashAndPassword([]byte(user.HashPassword), []byte(password))
-// 	if passcheck != nil || username != user.Username {
-// 		return echo.ErrUnauthorized
-// 	}
+	err := c.Bind(&req)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "error while binding")
+	}
 
-// 	claims := &jwtCustomClaims{
-// 		req.Username,
-// 		req.Email,
-// 		jwt.RegisteredClaims{
-// 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
-// 		},
-// 	}
+	c.Logger().Info("after binding: ",
+		"email", req.Email,
+		"password", req.Password,
+	)
 
-// 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	user, err := h.queries.GetUserByEmail(c.Request().Context(), req.Email)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "user not found")
+	}
+	passcheck := bcrypt.CompareHashAndPassword([]byte(user.HashPassword), []byte(req.Password))
+	if passcheck != nil {
+		c.Logger().Info("Password not correct")
+		return echo.ErrUnauthorized
+	} else {
+		c.Logger().Info("User logged in")
+	}
 
-// 	t, err := token.SignedString([]byte("secret"))
-// 	if err != nil {
-// 		return echo.NewHTTPError(http.StatusBadRequest, "failed to create a token")
-// 	}
+	claims := &JWTCustomClaims{
+		req.Username,
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
+		},
+	}
 
-// 	return c.JSON(http.StatusOK, map[string]string{
-// 		"token": t,
-// 	})
-// }
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-// func (h *Handler) DashboardHandler(c *echo.Context) error {
-// 	token, err := echo.ContextGet[*jwt.Token](c, "user")
-// 	if err != nil {
-// 		return echo.ErrUnauthorized.Wrap(err)
-// 	}
-// 	claims := token.Claims.(*jwtCustomClaims)
-// 	name := claims.Name
-// 	return c.String(http.StatusOK, "Welcom "+name)
-// }
+	t, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "failed to sign a token")
+	}
 
-// func (h *Handler) LogoutHandler(c *echo.Context) error {
-// 	return nil
-// }
+	cookie := &http.Cookie{
+		Name:     "access_token",
+		Value:    t,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+	}
+	c.SetCookie(cookie)
+
+	return c.JSON(http.StatusOK, map[string]string{"token": t})
+}
+
+func (h *Handler) LogoutHandler(c *echo.Context) error {
+	return nil
+}
