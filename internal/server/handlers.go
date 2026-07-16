@@ -105,5 +105,15 @@ func (h *Handler) LoginHandler(c *echo.Context) error {
 }
 
 func (h *Handler) LogoutHandler(c *echo.Context) error {
-	return nil
+	cookie := &http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		MaxAge:   -1,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   true,
+	}
+	c.SetCookie(cookie)
+
+	return c.JSON(http.StatusOK, "logged out")
 }

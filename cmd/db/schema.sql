@@ -1,11 +1,11 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
      id INTEGER PRIMARY KEY,
      username TEXT NOT NULL,
      hash_password TEXT NOT NULL,
      email TEXT UNIQUE NOT NULL
 );
 
-CREATE TABLE links (
+CREATE TABLE IF NOT EXISTS links (
      id INTEGER PRIMARY KEY,
      short_id TEXT UNIQUE,
      orig_url TEXT NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE links (
      FOREIGN KEY (user_id) REFERENCES user(id)
 );
 
-CREATE TABLE linkdata (
+CREATE TABLE IF NOT EXISTS linkdata (
      id INTEGER PRIMARY KEY,
      access_time DATETIM,E DEFAULT CURRENT_TIMESTAMP,
      country TEXT,

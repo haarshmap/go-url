@@ -21,7 +21,7 @@ RETURNING id, username, hash_password, email
 type CreateUserParams struct {
 	Username     string
 	HashPassword string
-	Email        interface{}
+	Email        string
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -42,7 +42,7 @@ WHERE email = ?
 LIMIT 1
 `
 
-func (q *Queries) GetUserByEmail(ctx context.Context, email interface{}) (User, error) {
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
 	var i User
 	err := row.Scan(

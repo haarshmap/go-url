@@ -8,6 +8,7 @@ import (
 
 	db "github.com/haarshmap/go-url/cmd/db/generated"
 	"github.com/haarshmap/go-url/internal/server"
+	"github.com/joho/godotenv"
 
 	"github.com/labstack/echo/v5"
 
@@ -25,6 +26,11 @@ func main() {
 	e := echo.New()
 	var err error
 
+	erro := godotenv.Load()
+	if erro != nil {
+		e.Logger.Error("Failed to initialise env", "error", err)
+	}
+
 	database, err := sql.Open("sqlite", "data.db")
 	if err != nil {
 		e.Logger.Error("Failed to initialise database", "error", err)
@@ -35,9 +41,9 @@ func main() {
 		e.Logger.Error("Failed to ping database: %v", "error", err)
 	}
 
-	if _, err := database.ExecContext(ctx, ddl); err != nil {
-		e.Logger.Error("Failed to create tables: %v", "error", err)
-	}
+	// if _, err := database.ExecContext(ctx, ddl); err != nil {
+	// 	e.Logger.Error("Failed to create tables: %v", "error", err)
+	// }
 
 	queries := db.New(database)
 	h := server.NewHandler(queries)
@@ -47,14 +53,12 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
 
-	//middleware for custom claims type
-
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {
-		e.Logger.Error("failed to start server: %v", "error", err)
+		e.Logger.Error("failed to start server", "error", err)
 	}
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:" + os.Getenv("RPORT"),
+		Addr:     "localhost:" + os.Getenv("REDISPORT"),
 		Password: "",
 	})
 	if err := rdb.Ping(ctx).Err(); err != nil {
