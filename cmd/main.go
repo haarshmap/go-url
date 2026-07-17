@@ -41,17 +41,22 @@ func main() {
 		e.Logger.Error("Failed to ping database: %v", "error", err)
 	}
 
-	// if _, err := database.ExecContext(ctx, ddl); err != nil {
-	// 	e.Logger.Error("Failed to create tables: %v", "error", err)
-	// }
+	if _, err := database.ExecContext(ctx, ddl); err != nil {
+		e.Logger.Error("Failed to create tables: %v", "error", err)
+	}
 
 	queries := db.New(database)
 	h := server.NewHandler(queries)
 	server.RegisterRoutes(e, h)
 
+	//middleware
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
+
+	r := e.Group("/dashboard")
+
+	r.GET("", h.DashboardHandler)
 
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {
 		e.Logger.Error("failed to start server", "error", err)
