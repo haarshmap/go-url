@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -119,19 +118,7 @@ func (h *Handler) LogoutHandler(c *echo.Context) error {
 	return c.JSON(http.StatusOK, "logged out")
 }
 
-// need to make a custom middleware and make templ for dashboard
 func (h *Handler) DashboardHandler(c *echo.Context) error {
-	c.Logger().Info("Currently in dashboard")
-	cookie, err := c.Cookie("access_token")
-	if err != nil {
-		c.Logger().Error("Cookie not found")
-		return echo.NewHTTPError(http.StatusBadRequest, "cookie not found")
-	}
 
-	if cookie != nil {
-		fmt.Println(cookie.Name)
-		fmt.Println(cookie.Value)
-	}
-
-	return c.JSON(http.StatusFound, "found the cookie")
+	return c.JSON(http.StatusFound, "found the cookie and currently in dashboard")
 }
