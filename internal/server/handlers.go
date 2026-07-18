@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -23,17 +24,51 @@ func NewHandler(q *db.Queries) *Handler {
 
 func (h *Handler) RegisterHandler(c *echo.Context) error {
 	var req RegisterRequest
-
 	err := c.Bind(&req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "error while binding")
 	}
+
+	// VALIDATE USER DETAILS
+	//for email
+	var EmailCheck = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+
+	//for password
+	var LengthCheck = regexp.MustCompile(`[a-z]{8,}`)
+	var CapsLetterCheck = regexp.MustCompile(`[A-Z]`)
+	var NumCharCheck = regexp.MustCompile(`[0-9]`)
+	var SpecialCharCheck = regexp.MustCompile(`[#?!@$%^&*-]`)
 
 	c.Logger().Info("after binding: ",
 		"username", req.Username,
 		"email", req.Email,
 		"password", req.Password,
 	)
+
+	if !EmailCheck.MatchString(req.Email) {
+		c.Logger().Error("Invalid email address")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Email address")
+	}
+
+	if LengthCheck.MatchString(req.Password) {
+		c.Logger().Error("Must be 8 characters long")
+		return echo.NewHTTPError(http.StatusBadRequest, "Must be 8 characters long")
+	}
+
+	if !CapsLetterCheck.MatchString(req.Password) {
+		c.Logger().Error("Must Include a Capital Letter")
+		return echo.NewHTTPError(http.StatusBadRequest, "Must Include a Capital Letter")
+	}
+
+	if !NumCharCheck.MatchString(req.Password) {
+		c.Logger().Error("Must Include a Number")
+		return echo.NewHTTPError(http.StatusBadRequest, "Must Include a Number")
+	}
+
+	if !SpecialCharCheck.MatchString(req.Password) {
+		c.Logger().Error("Must Include a Special Character")
+		return echo.NewHTTPError(http.StatusBadRequest, "Must Include a Special Character")
+	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -46,12 +81,12 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 		Email:        req.Email,
 	}
 
-	user, err := h.queries.CreateUser(c.Request().Context(), params)
+	_, err = h.queries.CreateUser(c.Request().Context(), params)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "user failed to be created")
 	}
 
-	return c.JSON(http.StatusCreated, user)
+	return c.Redirect(http.StatusMovedPermanently, "/login?acc_created=true")
 }
 
 func (h *Handler) LoginHandler(c *echo.Context) error {
@@ -60,6 +95,10 @@ func (h *Handler) LoginHandler(c *echo.Context) error {
 	err := c.Bind(&req)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "error while binding")
+	}
+
+	if req.Email == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "email not found")
 	}
 
 	c.Logger().Info("after binding: ",

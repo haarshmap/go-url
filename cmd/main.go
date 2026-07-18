@@ -57,7 +57,7 @@ func main() {
 	e.Use(middleware.Secure())
 
 	//grp the sites that are to be protected
-	r := e.Group("/dashboard")
+	protected := e.Group("/dashboard")
 
 	config := echojwt.Config{
 		NewClaimsFunc: func(c *echo.Context) jwt.Claims {
@@ -66,9 +66,9 @@ func main() {
 		SigningKey: []byte(os.Getenv("SIGNING_KEY")),
 	}
 
-	r.Use(server.CheckCookie)
-	r.Use(echojwt.WithConfig(config))
-	r.GET("", h.DashboardHandler)
+	protected.Use(server.CheckCookie)
+	protected.Use(echojwt.WithConfig(config))
+	protected.GET("", h.DashboardHandler)
 
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {
 		e.Logger.Error("failed to start server", "error", err)

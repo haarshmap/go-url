@@ -1,0 +1,74 @@
+package templates
+
+templ Login(title string, acc_created string) {
+@Base(title) {
+<h1>URL Shortener</h1>
+<p class="text">Just to see how the frontpage looks</p>
+<br>
+<h1>Login</h1>
+if acc_created != "" {
+<p>Your account was registered. You can sign in now</p>
+}
+<br>
+<form id="form" class="form">
+    <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input class="form-input" type="email" name="email" id="email">
+
+        <br>
+        <br>
+
+        <label for="password" class="form-label">Password</label>
+        <input class="form-input" type="password" name="password" id="password">
+
+        <br>
+        <br>
+
+        <button type="submit" class="button-primary">Submit</button>
+    </div>
+
+</form>
+<br>
+<span> to <a href="http://localhost:8080/"><span class="text-muted">homepage</span></a></span>
+
+<script>
+    url = "http://localhost:8080/login"
+
+    const form = document.querySelector("#form")
+    const email = document.querySelector("#email")
+    const password = document.querySelector("#password")
+
+    async function post_login(e) {
+        e.preventDefault()
+        const formData = new FormData(form)
+
+        const body = {
+            email: formData.get("email"),
+            password: formData.get("password")
+        }
+        console.log(body)
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(body)
+            })
+
+            if (!response.ok) {
+                throw new Error(`response status: ${response.status}`)
+            }
+
+            const result = await response.json();
+            console.log(result)
+        }
+        catch {
+            console.error(error.message)
+        }
+    }
+    form.addEventListener("submit", post_login)
+</script> 
+
+}
+}

@@ -1,0 +1,77 @@
+package templates
+
+templ Register(title string) {
+@Base(title) {
+<h1>URL Shortener</h1>
+<p class="text">Just to see how the frontpage looks</p>
+<br>
+<h1>Register</h1>
+<form id="form" class="form">
+    <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input class="form-input" type="text" name="username" id="username">
+        <br>
+        <br>
+        <label for="email" class="form-label">Email</label>
+        <input class="form-input" type="email" name="email" id="email">
+        <br>
+        <br>
+        <label for="password" class="form-label">Password</label>
+        <input class="form-input" type="password" name="password" id="password">
+        <br>
+        <br>
+        <button type="submit" class="button-primary">Submit</button>
+    </div>
+
+</form>
+<br>
+<span> to <a href="http://localhost:8080/">
+        <span class="text-muted">homepage</span>
+    </a></span>
+
+<script>
+    const baseurl = "http://localhost:8080/"
+    const url = "http://localhost:8080/register"
+
+    const form = document.querySelector("#form")
+    const username = document.querySelector("#username")
+    const password = document.querySelector("#password")
+    const email = document.querySelector("#email")
+    async function post_register(e) {
+        e.preventDefault()
+        const formData = new FormData(form)
+
+        console.log(e)
+
+        const body = {
+                    username: formData.get("username"),
+                    email: formData.get("email"),
+                    password: formData.get("password")
+        }
+        console.log(body)
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(body),
+            });
+            if (!response.ok) {
+                throw new Error(`email is already used`)
+            }
+
+            const result = await response.json();
+            console.log(result)
+
+        }
+        catch (error) {
+            console.error(error.message)
+        }
+    }
+    form.addEventListener("submit", post_register)
+
+</script>
+
+}
+}

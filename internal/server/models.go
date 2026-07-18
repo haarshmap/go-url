@@ -3,9 +3,9 @@ package server
 import "github.com/golang-jwt/jwt/v5"
 
 type RegisterRequest struct {
-	Username string `json:"username" form:"username"`
-	Password string `json:"password" form:"password"`
-	Email    string `json:"email" form:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 type UserResponse struct {
