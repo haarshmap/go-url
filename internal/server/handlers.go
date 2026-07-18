@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -87,7 +88,7 @@ func (h *Handler) LoginHandler(c *echo.Context) error {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	t, err := token.SignedString([]byte("secret"))
+	t, err := token.SignedString([]byte(os.Getenv("SIGNING_KEY")))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "failed to sign a token")
 	}
