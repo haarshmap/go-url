@@ -13,13 +13,13 @@ if acc_created != "" {
 <form id="form" class="form">
     <div class="form-group">
         <label for="email" class="form-label">Email</label>
-        <input class="form-input" type="email" name="email" id="email">
+        <input class="form-input" type="email" name="email" id="email" required autocomplete="off">
 
         <br>
         <br>
 
         <label for="password" class="form-label">Password</label>
-        <input class="form-input" type="password" name="password" id="password">
+        <input class="form-input" type="password" name="password" id="password" required autocomplete="off">
 
         <br>
         <br>
@@ -61,6 +61,7 @@ if acc_created != "" {
             }
 
             const result = await response.json();
+
             console.log(result)
         }
         catch {

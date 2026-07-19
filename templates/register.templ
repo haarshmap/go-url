@@ -9,15 +9,15 @@ templ Register(title string) {
 <form id="form" class="form">
     <div class="form-group">
         <label for="username" class="form-label">Username</label>
-        <input class="form-input" type="text" name="username" id="username">
+        <input class="form-input" type="text" name="username" id="username" required autocomplete="off">
         <br>
         <br>
         <label for="email" class="form-label">Email</label>
-        <input class="form-input" type="email" name="email" id="email">
+        <input class="form-input" type="email" name="email" id="email" required autocomplete="off">
         <br>
         <br>
         <label for="password" class="form-label">Password</label>
-        <input class="form-input" type="password" name="password" id="password">
+        <input class="form-input" type="password" name="password" id="password" required autocomplete="off">
         <br>
         <br>
         <button type="submit" class="button-primary">Submit</button>
@@ -30,7 +30,7 @@ templ Register(title string) {
     </a></span>
 
 <script>
-    const baseurl = "http://localhost:8080/"
+    const baseurl = "http://localhost:8080"
     const url = "http://localhost:8080/register"
 
     const form = document.querySelector("#form")
@@ -58,12 +58,14 @@ templ Register(title string) {
                 body: JSON.stringify(body),
             });
             if (!response.ok) {
-                throw new Error(`email is already used`)
+                throw new Error(`response status: ${response.status}`)
             }
 
             const result = await response.json();
+
             console.log(result)
 
+            window.location.href = baseurl + result
         }
         catch (error) {
             console.error(error.message)

@@ -34,7 +34,7 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 	var EmailCheck = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
 	//for password
-	var LengthCheck = regexp.MustCompile(`[a-z]{8,}`)
+	var LengthCheck = regexp.MustCompile(`[a-zA-Z0-9]{8,}`)
 	var CapsLetterCheck = regexp.MustCompile(`[A-Z]`)
 	var NumCharCheck = regexp.MustCompile(`[0-9]`)
 	var SpecialCharCheck = regexp.MustCompile(`[#?!@$%^&*-]`)
@@ -50,7 +50,7 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Email address")
 	}
 
-	if LengthCheck.MatchString(req.Password) {
+	if !LengthCheck.MatchString(req.Password) {
 		c.Logger().Error("Must be 8 characters long")
 		return echo.NewHTTPError(http.StatusBadRequest, "Must be 8 characters long")
 	}
@@ -86,31 +86,32 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "user failed to be created")
 	}
 
-	return c.Redirect(http.StatusMovedPermanently, "/login?acc_created=true")
+	c.Logger().Info("Account created! You can login.")
+	return c.JSON(http.StatusOK, "/login?acc_created=true")
 }
 
 func (h *Handler) LoginHandler(c *echo.Context) error {
-	var req RegisterRequest
+	var login LoginRequest
 
-	err := c.Bind(&req)
+	err := c.Bind(&login)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "error while binding")
 	}
 
-	if req.Email == "" {
+	if login.Email == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "email not found")
 	}
 
 	c.Logger().Info("after binding: ",
-		"email", req.Email,
-		"password", req.Password,
+		"email", login.Email,
+		"password", login.Password,
 	)
 
-	user, err := h.queries.GetUserByEmail(c.Request().Context(), req.Email)
+	user, err := h.queries.GetUserByEmail(c.Request().Context(), login.Email)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "user not found")
 	}
-	passcheck := bcrypt.CompareHashAndPassword([]byte(user.HashPassword), []byte(req.Password))
+	passcheck := bcrypt.CompareHashAndPassword([]byte(user.HashPassword), []byte(login.Password))
 	if passcheck != nil {
 		c.Logger().Info("Password not correct")
 		return echo.ErrUnauthorized
@@ -119,7 +120,7 @@ func (h *Handler) LoginHandler(c *echo.Context) error {
 	}
 
 	claims := &JWTCustomClaims{
-		req.Username,
+		login.Username,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
 		},
