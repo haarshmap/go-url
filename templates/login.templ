@@ -33,6 +33,7 @@ if acc_created != "" {
 
 <script>
     url = "http://localhost:8080/login"
+    baseurl = "http://localhost:8080"
 
     const form = document.querySelector("#form")
     const email = document.querySelector("#email")
@@ -61,7 +62,7 @@ if acc_created != "" {
             }
 
             const result = await response.json();
-
+            window.location.href = baseurl + result
             console.log(result)
         }
         catch {
