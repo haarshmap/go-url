@@ -68,7 +68,7 @@ func main() {
 
 	protected.Use(server.CheckCookie)
 	protected.Use(echojwt.WithConfig(config))
-	protected.GET("", h.DashboardHandler)
+	protected.POST("", h.DashboardHandler)
 
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {
 		e.Logger.Error("failed to start server", "error", err)

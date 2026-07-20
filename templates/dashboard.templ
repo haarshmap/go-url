@@ -5,5 +5,39 @@ templ Dashboard(title string) {
 <h1>URL Shortener</h1>
 <p class="text">Just to see how the frontpage looks</p>
 <br>
+
+<form id="form" class="form">
+    <div class="form-group">
+        <button class="button-primary" id="logout">Logout</button>
+
+    </div>
+</form>
+
+
+<script>
+    const baseurl = "http://localhost:8080"
+    const logouturl = baseurl + "/logout"
+    const form = document.querySelector("#form")
+
+    logout = document.querySelector("#logout")
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault()
+
+        const response = await fetch(logouturl, {
+            method: "POST",
+        });
+        console.log(response.status);
+        console.log(response.headers.get("content-type"));
+        
+        if (!response.ok) {
+            throw new Error(`response status: ${response.status}`)
+        }
+
+        const result = await response.json();
+        window.location.href = baseurl + "/"
+        console.log(result)
+    })
+</script>
 }
 }

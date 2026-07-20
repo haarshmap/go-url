@@ -34,7 +34,6 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 	var EmailCheck = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
 	//for password
-	var LengthCheck = regexp.MustCompile(`[a-zA-Z0-9]{8,}`)
 	var CapsLetterCheck = regexp.MustCompile(`[A-Z]`)
 	var NumCharCheck = regexp.MustCompile(`[0-9]`)
 	var SpecialCharCheck = regexp.MustCompile(`[#?!@$%^&*-]`)
@@ -48,11 +47,6 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 	if !EmailCheck.MatchString(req.Email) {
 		c.Logger().Error("Invalid email address")
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Email address")
-	}
-
-	if !LengthCheck.MatchString(req.Password) {
-		c.Logger().Error("Must be 8 characters long")
-		return echo.NewHTTPError(http.StatusBadRequest, "Must be 8 characters long")
 	}
 
 	if !CapsLetterCheck.MatchString(req.Password) {
@@ -142,7 +136,7 @@ func (h *Handler) LoginHandler(c *echo.Context) error {
 	}
 	c.SetCookie(cookie)
 
-	return c.JSON(http.StatusOK, "token is set")
+	return c.JSON(http.StatusOK, "/dashboard")
 }
 
 func (h *Handler) LogoutHandler(c *echo.Context) error {
@@ -156,7 +150,7 @@ func (h *Handler) LogoutHandler(c *echo.Context) error {
 	}
 	c.SetCookie(cookie)
 
-	return c.JSON(http.StatusOK, "logged out")
+	return c.JSON(http.StatusOK, "user is logged out")
 }
 
 func (h *Handler) DashboardHandler(c *echo.Context) error {

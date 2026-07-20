@@ -41,7 +41,7 @@ func Dashboard(title string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>URL Shortener</h1><p class=\"text\">Just to see how the frontpage looks</p><br>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>URL Shortener</h1><p class=\"text\">Just to see how the frontpage looks</p><br><form id=\"form\" class=\"form\"><div class=\"form-group\"><button class=\"button-primary\" id=\"logout\">Logout</button></div></form><script>\n    const baseurl = \"http://localhost:8080\"\n    const logouturl = baseurl + \"/logout\"\n    const form = document.querySelector(\"#form\")\n\n    logout = document.querySelector(\"#logout\")\n\n    form.addEventListener(\"submit\", async (e) => {\n        e.preventDefault()\n\n        const response = await fetch(logouturl, {\n            method: \"POST\",\n        });\n        console.log(response.status);\n        console.log(response.headers.get(\"content-type\"));\n        \n        if (!response.ok) {\n            throw new Error(`response status: ${response.status}`)\n        }\n\n        const result = await response.json();\n        window.location.href = baseurl + \"/\"\n        console.log(result)\n    })\n</script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
