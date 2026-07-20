@@ -8,20 +8,63 @@ templ Dashboard(title string) {
 
 <form id="form" class="form">
     <div class="form-group">
-        <button class="button-primary" id="logout">Logout</button>
-
+        <label for="originalurl">Paste Your URL</label>
+        <input type="text" class="form-input" name="originalurl" id="originalurl">
+        <br><br>
+        <label for="shortid">Custom Short URL</label>
+        <input type="text" class="form-input" name="shortid" id="shortid">
+        <br><br>
+        <button type="submit" class="button-primary">Submit</button>
     </div>
+</form>
+
+<br><br><br>
+<form id="formlogout">
+    <button class="button-primary" id="logout">Logout</button>
 </form>
 
 
 <script>
     const baseurl = "http://localhost:8080"
     const logouturl = baseurl + "/logout"
-    const form = document.querySelector("#form")
+    const createshortid = baseurl + "/dashboard/create"
 
+    const form = document.querySelector("#form")
+    const formData = new FormData(form)
+    const body = {
+        origurl: formData.get("originalurl"),
+        shortid: formData.get("shortid")
+    }
+    console.log(body)
+
+    const formlogout = document.querySelector("#formlogout")
     logout = document.querySelector("#logout")
 
     form.addEventListener("submit", async (e) => {
+        e.preventDefault()
+        try {
+            const response = await fetch(createshortid, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body),
+            });
+            if (!response.ok) {
+                throw new Error(`response status: ${response.status}`)
+            }
+
+            const result = await response.json();
+
+            console.log(result)
+        }
+        catch (error) {
+            console.error(error);
+            console.error(error.message);
+        }
+    })
+
+    formlogout.addEventListener("submit", async (e) => {
         e.preventDefault()
 
         const response = await fetch(logouturl, {
@@ -29,7 +72,7 @@ templ Dashboard(title string) {
         });
         console.log(response.status);
         console.log(response.headers.get("content-type"));
-        
+
         if (!response.ok) {
             throw new Error(`response status: ${response.status}`)
         }

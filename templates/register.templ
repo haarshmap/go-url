@@ -6,10 +6,10 @@ templ Register(title string) {
 <p class="text">Just to see how the frontpage looks</p>
 <br>
 <h1>Register</h1>
-<form id="form" class="form">
+<form id="form" class="form" autocomplete="off">
     <div class="form-group">
         <label for="username" class="form-label">Username</label>
-        <input class="form-input" type="text" name="username" id="username" required autocomplete="off">
+        <input class="form-input" type="text" name="username" id="username" required>
         <br>
         <br>
         <label for="email" class="form-label">Email</label>
@@ -44,9 +44,9 @@ templ Register(title string) {
         console.log(e)
 
         const body = {
-                    username: formData.get("username"),
-                    email: formData.get("email"),
-                    password: formData.get("password")
+            username: formData.get("username"),
+            email: formData.get("email"),
+            password: formData.get("password")
         }
         console.log(body)
         try {

@@ -65,12 +65,13 @@ if acc_created != "" {
             window.location.href = baseurl + result
             console.log(result)
         }
-        catch {
-            console.error(error.message)
+        catch (error) {
+            console.error(error);
+            console.error(error.message);
         }
     }
     form.addEventListener("submit", post_login)
-</script> 
+</script>
 
 }
 }

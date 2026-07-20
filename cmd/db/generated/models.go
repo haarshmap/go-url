@@ -11,7 +11,7 @@ import (
 
 type Link struct {
 	ID      int64
-	ShortID sql.NullString
+	ShortID string
 	OrigUrl string
 	Expiry  time.Time
 	UserID  int64
@@ -19,8 +19,7 @@ type Link struct {
 
 type Linkdatum struct {
 	ID         int64
-	AccessTime interface{}
-	E          interface{}
+	AccessTime sql.NullTime
 	Country    sql.NullString
 	LinkID     int64
 }

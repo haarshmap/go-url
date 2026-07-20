@@ -7,7 +7,36 @@ package db
 
 import (
 	"context"
+	"time"
 )
+
+const createLink = `-- name: CreateLink :one
+INSERT INTO links (
+    short_id, orig_url, expiry
+) VALUES (
+    ?, ?, ?
+)
+RETURNING id, short_id, orig_url, expiry, user_id
+`
+
+type CreateLinkParams struct {
+	ShortID string
+	OrigUrl string
+	Expiry  time.Time
+}
+
+func (q *Queries) CreateLink(ctx context.Context, arg CreateLinkParams) (Link, error) {
+	row := q.db.QueryRowContext(ctx, createLink, arg.ShortID, arg.OrigUrl, arg.Expiry)
+	var i Link
+	err := row.Scan(
+		&i.ID,
+		&i.ShortID,
+		&i.OrigUrl,
+		&i.Expiry,
+		&i.UserID,
+	)
+	return i, err
+}
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
@@ -32,6 +61,25 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Username,
 		&i.HashPassword,
 		&i.Email,
+	)
+	return i, err
+}
+
+const getURLByID = `-- name: GetURLByID :one
+SELECT id, short_id, orig_url, expiry, user_id FROM links
+WHERE short_id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetURLByID(ctx context.Context, shortID string) (Link, error) {
+	row := q.db.QueryRowContext(ctx, getURLByID, shortID)
+	var i Link
+	err := row.Scan(
+		&i.ID,
+		&i.ShortID,
+		&i.OrigUrl,
+		&i.Expiry,
+		&i.UserID,
 	)
 	return i, err
 }
