@@ -1,25 +1,14 @@
 package templates
 
-templ Home(title string, needs_auth string, logged_in bool) {
+templ Home(title string) {
 @Base(title) {
 <h1>URL Shortener</h1>
-if needs_auth != "" {
-    <br>
-    <div class="alert-error">you need to be logged in for this shi.</div>
-    <br>
-
-}
 <p class="text">Just to see how the frontpage looks</p>
-if logged_in {
- <br>
-<span> to <a href="/dashboard"><span class="text-muted">dsahboard</span></a></span>
-<br><br>
-} else {
 <br>
-<span> to <a href="/register"><span class="text-muted">register</span></a></span>
+<span> to <a href="http://localhost:8080/register"><span class="text-muted">register</span></a></span>
 <br><br>
-<span> to <a href="/login"><span class="text-muted">login</span></a></span>
-}
+<span> to <a href="http://localhost:8080/login"><span class="text-muted">login</span></a></span>
+
 }
 
 }

@@ -6,10 +6,12 @@ import (
 	_ "embed"
 	"os"
 
+	"github.com/golang-jwt/jwt/v5"
 	db "github.com/haarshmap/go-url/cmd/db/generated"
 	"github.com/haarshmap/go-url/internal/server"
 	"github.com/joho/godotenv"
 
+	echojwt "github.com/labstack/echo-jwt/v5"
 	"github.com/labstack/echo/v5"
 
 	"github.com/labstack/echo/v5/middleware"
@@ -53,6 +55,20 @@ func main() {
 	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
+
+	//grp the sites that are to be protected
+	protected := e.Group("/dashboard")
+
+	config := echojwt.Config{
+		NewClaimsFunc: func(c *echo.Context) jwt.Claims {
+			return new(server.JWTCustomClaims)
+		},
+		SigningKey: []byte(os.Getenv("SIGNING_KEY")),
+	}
+
+	protected.Use(server.CheckCookie)
+	protected.Use(echojwt.WithConfig(config))
+	protected.POST("", h.DashboardHandler)
 
 	if err := e.Start(":" + os.Getenv("PORT")); err != nil {
 		e.Logger.Error("failed to start server", "error", err)

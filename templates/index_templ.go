@@ -8,7 +8,7 @@ package templates
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func Home(title string, needs_auth string, logged_in bool) templ.Component {
+func Home(title string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -41,30 +41,9 @@ func Home(title string, needs_auth string, logged_in bool) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>URL Shortener</h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>URL Shortener</h1><p class=\"text\">Just to see how the frontpage looks</p><br><span>to <a href=\"http://localhost:8080/register\"><span class=\"text-muted\">register</span></a></span><br><br><span>to <a href=\"http://localhost:8080/login\"><span class=\"text-muted\">login</span></a></span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
-			}
-			if needs_auth != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<br><div class=\"alert-error\">you need to be logged in for this shi.</div><br>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " <p class=\"text\">Just to see how the frontpage looks</p>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			if logged_in {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<br><span>to <a href=\"/dashboard\"><span class=\"text-muted\">dsahboard</span></a></span><br><br>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<br><span>to <a href=\"/register\"><span class=\"text-muted\">register</span></a></span><br><br><span>to <a href=\"/login\"><span class=\"text-muted\">login</span></a></span>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
 			}
 			return nil
 		})

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -47,27 +46,27 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 
 	if !EmailCheck.MatchString(req.Email) {
 		c.Logger().Error("Invalid email address")
-		return c.JSON(http.StatusBadRequest, "Invalid Email address")
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid Email address")
 	}
 
 	if !CapsLetterCheck.MatchString(req.Password) {
 		c.Logger().Error("Must Include a Capital Letter")
-		return c.JSON(http.StatusBadRequest, "Must Include a Capital Letter")
+		return echo.NewHTTPError(http.StatusBadRequest, "Must Include a Capital Letter")
 	}
 
 	if !NumCharCheck.MatchString(req.Password) {
 		c.Logger().Error("Must Include a Number")
-		return c.JSON(http.StatusBadRequest, "Must Include a Number")
+		return echo.NewHTTPError(http.StatusBadRequest, "Must Include a Number")
 	}
 
 	if !SpecialCharCheck.MatchString(req.Password) {
 		c.Logger().Error("Must Include a Special Character")
-		return c.JSON(http.StatusBadRequest, "Must Include a Special Character")
+		return echo.NewHTTPError(http.StatusBadRequest, "Must Include a Special Character")
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "error while creating hash")
+		return echo.NewHTTPError(http.StatusBadRequest, "error while creating hash")
 	}
 
 	params := db.CreateUserParams{
@@ -78,7 +77,7 @@ func (h *Handler) RegisterHandler(c *echo.Context) error {
 
 	_, err = h.queries.CreateUser(c.Request().Context(), params)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "user failed to be created")
+		return echo.NewHTTPError(http.StatusBadRequest, "user failed to be created")
 	}
 
 	c.Logger().Info("Account created! You can login.")
@@ -157,42 +156,4 @@ func (h *Handler) LogoutHandler(c *echo.Context) error {
 func (h *Handler) DashboardHandler(c *echo.Context) error {
 
 	return c.JSON(http.StatusFound, "found the cookie and currently in dashboard")
-}
-
-func (h *Handler) CreateLink(c *echo.Context) error {
-	var link Link
-
-	c.Logger().Info("Before binding: ",
-		"short id:"+link.Short_id,
-		"original url:"+link.Orig_url,
-	)
-
-	err := c.Bind(&link)
-	if err != nil {
-		c.Logger().Info("After binding: ",
-			"short id:"+link.Short_id,
-			"original url:"+link.Orig_url,
-		)
-		return c.JSON(http.StatusBadRequest, "binding failed")
-	}
-
-	if link.Short_id == "" {
-		hashURl := FastHash(link.Orig_url)
-		link.Short_id = strconv.FormatUint(uint64(hashURl), 10)
-	}
-
-	link.Expiry = time.Now().Add(24 * time.Hour)
-
-	params := db.CreateLinkParams{
-		ShortID: link.Short_id,
-		OrigUrl: link.Orig_url,
-		Expiry:  link.Expiry,
-	}
-
-	_, err = h.queries.CreateLink(c.Request().Context(), params)
-	if err != nil {
-		c.Logger().Error("The query has an issue while creating a row")
-		return c.JSON(http.StatusBadRequest, "query failed")
-	}
-	return c.JSON(http.StatusOK, "Short link is created")
 }
