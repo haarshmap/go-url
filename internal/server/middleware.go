@@ -18,3 +18,15 @@ func CheckCookie(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+func IsLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c *echo.Context) error {
+		_, err := c.Cookie("access_token")
+		if err == nil {
+			c.Logger().Info("User is logged in")
+			c.Redirect(http.StatusMovedPermanently, "/dashboard")
+		}
+
+		return next(c)
+	}
+}
