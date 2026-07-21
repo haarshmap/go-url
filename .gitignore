@@ -1,3 +1,4 @@
 data.db
 .env
 tmp
+templates/*_templ.go
