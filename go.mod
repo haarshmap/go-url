@@ -4,6 +4,7 @@ go 1.26.4
 
 require (
 	github.com/a-h/templ v0.3.1020
+	github.com/go-redis/redis_rate/v10 v10.0.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo-jwt/v5 v5.0.2

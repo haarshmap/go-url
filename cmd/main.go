@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo/v5"
 
 	"github.com/labstack/echo/v5/middleware"
-	"github.com/redis/go-redis/v9"
 
 	_ "modernc.org/sqlite"
 )
@@ -24,12 +23,12 @@ var ddl string
 func main() {
 	ctx := context.Background()
 	e := echo.New()
-	var err error
-
-	erro := godotenv.Load()
-	if erro != nil {
+	err := godotenv.Load()
+	if err != nil {
 		e.Logger.Error("Failed to initialise env", "error", err)
 	}
+
+	server.InitRedis()
 
 	database, err := sql.Open("sqlite", "data.db")
 	if err != nil {
@@ -58,11 +57,4 @@ func main() {
 		e.Logger.Error("failed to start server", "error", err)
 	}
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:" + os.Getenv("REDISPORT"),
-		Password: "",
-	})
-	if err := rdb.Ping(ctx).Err(); err != nil {
-		e.Logger.Error("Connecting to redis: %v", "error", err)
-	}
 }

@@ -43,8 +43,8 @@ var RegisterRoutes = func(e *echo.Echo, h *Handler) {
 	protected.Use(echojwt.WithConfig(config))
 
 	//users routes
-	e.POST("/register", h.RegisterHandler, IsLoggedIn)
-	e.POST("/login", h.LoginHandler, IsLoggedIn)
+	e.POST("/register", h.RegisterHandler, IsLoggedIn, RateLimiter)
+	e.POST("/login", h.LoginHandler, IsLoggedIn, RateLimiter)
 	e.POST("/logout", h.LogoutHandler, CheckCookie)
 	protected.POST("/dashboard", h.DashboardHandler)
 

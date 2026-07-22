@@ -58,19 +58,18 @@ if acc_created != "" {
             })
 
             if (!response.ok) {
-                throw new Error(`response status: ${response.status}`)
+                throw new Error(`Response status: ${response.status}`);
             }
-
             const result = await response.json();
             window.location.href = baseurl + result
             console.log(result)
         }
-        catch {
-            console.error(error.message)
+        catch(error) {
+            console.error(error);
         }
     }
     form.addEventListener("submit", post_login)
-</script> 
+</script>
 
 }
 }
