@@ -1,6 +1,10 @@
 package server
 
-import "github.com/golang-jwt/jwt/v5"
+import (
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+)
 
 type RegisterRequest struct {
 	Username string `json:"username"`
@@ -23,4 +27,11 @@ type UserResponse struct {
 type JWTCustomClaims struct {
 	Username string `json:"username"`
 	jwt.RegisteredClaims
+}
+
+type Links struct {
+	ShortID string    `json:"shortid"`
+	OrigURL string    `json:"origurl"`
+	UserID  int64     `json:"userid"`
+	Expiry  time.Time `json:"expiry"`
 }

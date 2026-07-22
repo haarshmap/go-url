@@ -8,20 +8,61 @@ templ Dashboard(title string) {
 
 <form id="form" class="form">
     <div class="form-group">
-        <button class="button-primary" id="logout">Logout</button>
-
+        <label for="shortid" id="shortid">Custom URL Name (Not required)</label>
+        <input class="form-input" type="text" name="shortid" autocomplete="off">
+        <label for="origurl" id="origurl">Paste URL</label>
+        <input class="form-input" type="text" name="origurl" required autocomplete="off">
+        <button class="button-primary">Submit</button>
     </div>
+</form>
+
+<form id="formlogout">
+    <button class="button-primary" id="logout">Logout</button>
 </form>
 
 
 <script>
     const baseurl = "http://localhost:8080"
     const logouturl = baseurl + "/logout"
+
+
     const form = document.querySelector("#form")
+    const formlogout = document.querySelector("#formlogout")
 
     logout = document.querySelector("#logout")
 
     form.addEventListener("submit", async (e) => {
+        e.preventDefault()
+        const formData = new FormData(form)
+
+        console.log(e)
+
+        const body = {
+            shortid: formData.get("shortid"),
+            origurl: formData.get("origurl")
+        }
+        console.log(body)
+        try {
+            const response = await fetch("http://localhost:8080/dashboard/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(body),
+            });
+            if (!response.ok) {
+                throw new Error(`response status: ${response.status}`)
+            }
+
+            const result = await response.json();
+            console.log(result)
+        }
+        catch (error) {
+            console.error(error)
+        }
+    })
+
+    formlogout.addEventListener("submit", async (e) => {
         e.preventDefault()
 
         const response = await fetch(logouturl, {
@@ -29,7 +70,7 @@ templ Dashboard(title string) {
         });
         console.log(response.status);
         console.log(response.headers.get("content-type"));
-        
+
         if (!response.ok) {
             throw new Error(`response status: ${response.status}`)
         }

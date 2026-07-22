@@ -46,6 +46,8 @@ var RegisterRoutes = func(e *echo.Echo, h *Handler) {
 	e.POST("/register", h.RegisterHandler, IsLoggedIn, RateLimiter)
 	e.POST("/login", h.LoginHandler, IsLoggedIn, RateLimiter)
 	e.POST("/logout", h.LogoutHandler, CheckCookie)
-	protected.POST("/dashboard", h.DashboardHandler)
 
+	//link routes
+	protected.POST("/dashboard", h.DashboardHandler)
+	protected.POST("/create", h.RegisterLink)
 }

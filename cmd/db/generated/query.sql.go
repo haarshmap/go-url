@@ -7,7 +7,42 @@ package db
 
 import (
 	"context"
+	"time"
 )
+
+const createLink = `-- name: CreateLink :one
+INSERT INTO links (
+    short_id, orig_url, expiry, user_id
+) VALUES (
+    ?, ?, ?, ?
+)
+RETURNING id, short_id, orig_url, expiry, user_id
+`
+
+type CreateLinkParams struct {
+	ShortID string
+	OrigUrl string
+	Expiry  time.Time
+	UserID  int64
+}
+
+func (q *Queries) CreateLink(ctx context.Context, arg CreateLinkParams) (Link, error) {
+	row := q.db.QueryRowContext(ctx, createLink,
+		arg.ShortID,
+		arg.OrigUrl,
+		arg.Expiry,
+		arg.UserID,
+	)
+	var i Link
+	err := row.Scan(
+		&i.ID,
+		&i.ShortID,
+		&i.OrigUrl,
+		&i.Expiry,
+		&i.UserID,
+	)
+	return i, err
+}
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (

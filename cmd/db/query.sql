@@ -10,3 +10,11 @@ RETURNING *;
 SELECT * FROM users
 WHERE email = ?
 LIMIT 1;
+
+-- name: CreateLink :one
+INSERT INTO links (
+    short_id, orig_url, expiry, user_id
+) VALUES (
+    ?, ?, ?, ?
+)
+RETURNING *;

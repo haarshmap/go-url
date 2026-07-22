@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -156,4 +157,48 @@ func (h *Handler) LogoutHandler(c *echo.Context) error {
 func (h *Handler) DashboardHandler(c *echo.Context) error {
 
 	return c.JSON(http.StatusFound, "found the cookie and currently in dashboard")
+}
+
+func (h *Handler) RegisterLink(c *echo.Context) error {
+	var link Links
+
+	c.Logger().Info("Before binding:",
+		"link.Short_code:", link.ShortID,
+		"link.Original_URL:", link.OrigURL,
+		"link.UserID:", link.UserID,
+		"link.Expiry:", link.Expiry,
+	)
+
+	err := c.Bind(&link)
+	c.Logger().Info("After binding:",
+		"link.Short_code:", link.ShortID,
+		"link.Original_URL:", link.OrigURL,
+		"link.UserID:", link.UserID,
+		"link.Expiry:", link.Expiry,
+	)
+	if err != nil {
+		c.Logger().Error("Failed to bind links", "error", err)
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to bind")
+	}
+
+	link.Expiry = time.Now().Add(24 * time.Hour)
+
+	if link.ShortID == "" {
+		link.ShortID = strconv.FormatUint(uint64(FastHash(link.OrigURL)), 10)
+	}
+
+	params := db.CreateLinkParams{
+		ShortID: link.ShortID,
+		OrigUrl: link.OrigURL,
+		Expiry:  link.Expiry,
+		UserID:  link.UserID,
+	}
+
+	_, err = h.queries.CreateLink(c.Request().Context(), params)
+	if err != nil {
+		c.Logger().Error("Failed to create the user")
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to create a link row")
+	}
+
+	return c.JSON(http.StatusOK, "link created")
 }

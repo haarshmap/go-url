@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS links (
      id INTEGER PRIMARY KEY,
-     short_id TEXT UNIQUE,
+     short_id TEXT UNIQUE NOT NULL,
      orig_url TEXT NOT NULL,
      expiry DATETIME NOT NULL,
      user_id INTEGER NOT NULL,
