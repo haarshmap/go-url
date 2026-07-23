@@ -1,6 +1,6 @@
 package templates
 
-templ Dashboard(title string) {
+templ Dashboard(title string, logged_in bool, userID int64, email string) {
 @Base(title) {
 <h1>URL Shortener</h1>
 <p class="text">Just to see how the frontpage looks</p>
@@ -16,20 +16,40 @@ templ Dashboard(title string) {
     </div>
 </form>
 
+<br>
+<p>Mostly just testing for redirect</p>
+<br>
+
+<form id="formredirect" class="form">
+    <div class="form-group">
+        <label for="shortid2" id="shortid2">Enter your short code:</label>
+        <input class="form-input" type="text" name="shortid2" autocomplete="off">
+        <button class="button-primary">Submit</button>
+    </div>
+</form>
+<br>
 <form id="formlogout">
     <button class="button-primary" id="logout">Logout</button>
 </form>
-
+<br>
+if logged_in {
+    <h2>Just to know which user is being used</h2>
+    <br>
+    <p> UserID: {userID} </p>
+    <p> Email: {email} </p>
+}
 
 <script>
     const baseurl = "http://localhost:8080"
     const logouturl = baseurl + "/logout"
     const create = "http://localhost:8080/dashboard/create"
+    const redirect = baseurl + "/:id"
 
     const form = document.querySelector("#form")
+    const formredirect = document.querySelector("#formredirect")
     const formlogout = document.querySelector("#formlogout")
 
-    logout = document.querySelector("#logout")
+    const logout = document.querySelector("#logout")
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault()
@@ -56,6 +76,30 @@ templ Dashboard(title string) {
 
             const result = await response.json();
             console.log(result)
+        }
+        catch (error) {
+            console.error(error)
+        }
+    })
+
+    formredirect.addEventListener("submit", async (e) => {
+        e.preventDefault()
+        const formRedirectData = new FormData(formredirect)
+
+        console.log(e)
+        try {
+            const response = await fetch(redirect)
+            console.log(response.ok)
+            if (!response.ok) {
+                throw new Error(`response status: ${response.status}`)
+            }
+
+            const result = await response.redirected
+            if (result) {
+                window.location.href = result
+            }
+
+            console.log(response.redirect)
         }
         catch (error) {
             console.error(error)

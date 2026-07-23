@@ -22,6 +22,7 @@ type LoginRequest struct {
 type JWTCustomClaims struct {
 	UserID   int64  `json:"userid"`
 	Username string `json:"username"`
+	Email    string `json:"email"`
 	jwt.RegisteredClaims
 }
 

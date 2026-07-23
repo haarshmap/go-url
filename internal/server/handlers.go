@@ -1,6 +1,8 @@
 package server
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 	"os"
 	"regexp"
@@ -126,6 +128,7 @@ func (h *Handler) LoginHandler(c *echo.Context) error {
 	claims := &JWTCustomClaims{
 		login.UserID,
 		login.Username,
+		login.Email,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
 		},
@@ -185,7 +188,7 @@ func (h *Handler) RegisterLink(c *echo.Context) error {
 		}
 		return []byte(os.Getenv("SIGNING_KEY")), nil
 	})
-	if err != nil {
+	if err != nil || !token.Valid {
 		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
 	}
 
@@ -196,6 +199,11 @@ func (h *Handler) RegisterLink(c *echo.Context) error {
 
 	link.UserID = claims.UserID
 
+	_, checkID := h.queries.GetUserByID(c.Request().Context(), link.UserID)
+	if errors.Is(checkID, sql.ErrNoRows) {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Row does not exist")
+	}
+
 	c.Logger().Info("Before binding:",
 		"link.Short_code:", link.ShortID,
 		"link.Original_URL:", link.OrigURL,
@@ -204,6 +212,10 @@ func (h *Handler) RegisterLink(c *echo.Context) error {
 	)
 
 	err = c.Bind(&link)
+	if err != nil {
+		c.Logger().Error("Failed to bind links", "error", err)
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to bind")
+	}
 
 	c.Logger().Info("After binding:",
 		"link.Short_code:", link.ShortID,
@@ -211,13 +223,10 @@ func (h *Handler) RegisterLink(c *echo.Context) error {
 		"link.UserID:", link.UserID,
 		"link.Expiry:", link.Expiry,
 	)
-	if err != nil {
-		c.Logger().Error("Failed to bind links", "error", err)
-		return echo.NewHTTPError(http.StatusBadRequest, "Failed to bind")
-	}
 
 	link.Expiry = time.Now().Add(24 * time.Hour)
 
+	//needs a better hasher for lesser conflicts
 	if link.ShortID == "" {
 		link.ShortID = strconv.FormatUint(uint64(FastHash(link.OrigURL)), 10)
 	}
@@ -236,4 +245,19 @@ func (h *Handler) RegisterLink(c *echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, "link created")
+}
+
+func (h *Handler) RedirectLink(c *echo.Context) error {
+
+	id := c.Param("id")
+	c.Logger().Info("id", "id", id)
+	var err error
+
+	url, err := h.queries.GetURLByShortCode(c.Request().Context(), id)
+	if err != nil {
+		c.Logger().Error("failed to retrieve url")
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to retrieve url")
+	}
+
+	return c.Redirect(http.StatusMovedPermanently, url)
 }

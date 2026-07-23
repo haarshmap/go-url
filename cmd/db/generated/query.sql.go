@@ -71,6 +71,19 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getURLByShortCode = `-- name: GetURLByShortCode :one
+SELECT orig_url FROM links
+WHERE short_id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetURLByShortCode(ctx context.Context, shortID string) (string, error) {
+	row := q.db.QueryRowContext(ctx, getURLByShortCode, shortID)
+	var orig_url string
+	err := row.Scan(&orig_url)
+	return orig_url, err
+}
+
 const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, username, hash_password, email FROM users
 WHERE email = ?
@@ -79,6 +92,24 @@ LIMIT 1
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.HashPassword,
+		&i.Email,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT id, username, hash_password, email FROM users
+WHERE id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
 		&i.ID,

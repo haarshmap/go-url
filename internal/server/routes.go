@@ -1,6 +1,7 @@
 package server
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -38,7 +39,29 @@ var RegisterRoutes = func(e *echo.Echo, h *Handler) {
 
 	protected.Use(CheckCookie)
 	protected.GET("", func(c *echo.Context) error {
-		return templates.Dashboard("url-shortie").Render(c.Request().Context(), c.Response())
+		var logged_in = true
+		cookie, err := c.Cookie("access_token")
+		if err != nil {
+			c.Logger().Error("Cookie is not found")
+			return echo.NewHTTPError(http.StatusNotFound, "cookie not found")
+		}
+
+		token, err := jwt.ParseWithClaims(cookie.Value, &JWTCustomClaims{}, func(token *jwt.Token) (any, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, echo.NewHTTPError(http.StatusConflict, "Failed to parse")
+			}
+			return []byte(os.Getenv("SIGNING_KEY")), nil
+		})
+		if err != nil || !token.Valid {
+			return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
+		}
+
+		claims, ok := token.Claims.(*JWTCustomClaims)
+		if !ok {
+			return echo.NewHTTPError(http.StatusInternalServerError, "Failed to cast claims")
+		}
+
+		return templates.Dashboard("url-shortie", logged_in, claims.UserID, claims.Email).Render(c.Request().Context(), c.Response())
 	}, CheckCookie)
 	protected.Use(echojwt.WithConfig(config))
 
@@ -48,6 +71,8 @@ var RegisterRoutes = func(e *echo.Echo, h *Handler) {
 	e.POST("/logout", h.LogoutHandler, CheckCookie)
 
 	//link routes
-	protected.POST("/dashboard", h.DashboardHandler)
+	// /dashboard
+	protected.POST("/", h.DashboardHandler)
 	protected.POST("/create", h.RegisterLink)
+	e.GET("/:id", h.RedirectLink) //placeholder to check if the redirect works
 }

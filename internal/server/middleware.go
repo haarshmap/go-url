@@ -45,7 +45,6 @@ func IsLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 			c.Logger().Info("User is logged in")
 			c.Redirect(http.StatusMovedPermanently, "/dashboard")
 		}
-
 		return next(c)
 	}
 }

@@ -19,8 +19,7 @@ type Link struct {
 
 type Linkdatum struct {
 	ID         int64
-	AccessTime interface{}
-	E          interface{}
+	AccessTime sql.NullTime
 	Country    sql.NullString
 	LinkID     int64
 }

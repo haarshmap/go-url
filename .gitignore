@@ -2,3 +2,4 @@ data.db
 .env
 tmp
 templates/*_templ.go
+/cmd/db/generated
