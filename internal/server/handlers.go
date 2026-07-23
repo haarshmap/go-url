@@ -106,6 +106,15 @@ func (h *Handler) LoginHandler(c *echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "user not found")
 	}
+
+	login.UserID = user.ID
+
+	c.Logger().Info("after the query: ",
+		"UserID", login.UserID,
+		"email", login.Email,
+		"password", login.Password,
+	)
+
 	passcheck := bcrypt.CompareHashAndPassword([]byte(user.HashPassword), []byte(login.Password))
 	if passcheck != nil {
 		c.Logger().Info("Password not correct")
@@ -115,6 +124,7 @@ func (h *Handler) LoginHandler(c *echo.Context) error {
 	}
 
 	claims := &JWTCustomClaims{
+		login.UserID,
 		login.Username,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
@@ -161,6 +171,30 @@ func (h *Handler) DashboardHandler(c *echo.Context) error {
 
 func (h *Handler) RegisterLink(c *echo.Context) error {
 	var link Links
+	var err error
+
+	cookie, err := c.Cookie("access_token")
+	if err != nil {
+		c.Logger().Error("Cookie is not found")
+		return echo.NewHTTPError(http.StatusNotFound, "cookie not found")
+	}
+
+	token, err := jwt.ParseWithClaims(cookie.Value, &JWTCustomClaims{}, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, echo.NewHTTPError(http.StatusConflict, "Failed to parse")
+		}
+		return []byte(os.Getenv("SIGNING_KEY")), nil
+	})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
+	}
+
+	claims, ok := token.Claims.(*JWTCustomClaims)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to cast claims")
+	}
+
+	link.UserID = claims.UserID
 
 	c.Logger().Info("Before binding:",
 		"link.Short_code:", link.ShortID,
@@ -169,7 +203,8 @@ func (h *Handler) RegisterLink(c *echo.Context) error {
 		"link.Expiry:", link.Expiry,
 	)
 
-	err := c.Bind(&link)
+	err = c.Bind(&link)
+
 	c.Logger().Info("After binding:",
 		"link.Short_code:", link.ShortID,
 		"link.Original_URL:", link.OrigURL,
@@ -196,7 +231,7 @@ func (h *Handler) RegisterLink(c *echo.Context) error {
 
 	_, err = h.queries.CreateLink(c.Request().Context(), params)
 	if err != nil {
-		c.Logger().Error("Failed to create the user")
+		c.Logger().Error("Failed to create the LINK")
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to create a link row")
 	}
 

@@ -24,7 +24,7 @@ templ Dashboard(title string) {
 <script>
     const baseurl = "http://localhost:8080"
     const logouturl = baseurl + "/logout"
-
+    const create = "http://localhost:8080/dashboard/create"
 
     const form = document.querySelector("#form")
     const formlogout = document.querySelector("#formlogout")
@@ -43,7 +43,7 @@ templ Dashboard(title string) {
         }
         console.log(body)
         try {
-            const response = await fetch("http://localhost:8080/dashboard/create", {
+            const response = await fetch(create, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

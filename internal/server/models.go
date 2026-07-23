@@ -13,18 +13,14 @@ type RegisterRequest struct {
 }
 
 type LoginRequest struct {
+	UserID   int64  `json:"userid"`
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Email    string `json:"email"`
 }
 
-type UserResponse struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-}
-
 type JWTCustomClaims struct {
+	UserID   int64  `json:"userid"`
 	Username string `json:"username"`
 	jwt.RegisteredClaims
 }
