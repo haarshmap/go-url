@@ -74,5 +74,6 @@ var RegisterRoutes = func(e *echo.Echo, h *Handler) {
 	// /dashboard
 	protected.POST("/", h.DashboardHandler)
 	protected.POST("/create", h.RegisterLink)
+	e.GET("/all", h.Getlinksbyid)
 	e.GET("/:id", h.RedirectLink) //placeholder to check if the redirect works
 }

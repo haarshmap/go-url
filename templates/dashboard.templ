@@ -16,43 +16,63 @@ templ Dashboard(title string, logged_in bool, userID int64, email string) {
     </div>
 </form>
 
-<br>
-<p>Mostly just testing for redirect</p>
-<br>
+<table id="table" class="table">
+    <tr>
+        <th>Short Code</th>
+        <th>Original URL</th>
+        <th>Expiry</th>
+    </tr>
+</table>
 
-<form id="formredirect" class="form">
-    <div class="form-group">
-        <label for="shortid2" id="shortid2">Enter your short code:</label>
-        <input class="form-input" type="text" name="shortid2" autocomplete="off">
-        <button class="button-primary">Submit</button>
-    </div>
-</form>
+<br>
 <br>
 <form id="formlogout">
     <button class="button-primary" id="logout">Logout</button>
 </form>
 <br>
 if logged_in {
-    <h2>Just to know which user is being used</h2>
-    <br>
-    <p> UserID: {userID} </p>
-    <p> Email: {email} </p>
+<h2>Just to know which user is being used</h2>
+<br>
+<p> UserID: {userID} </p>
+<p> Email: {email} </p>
 }
 
 <script>
     const baseurl = "http://localhost:8080"
     const logouturl = baseurl + "/logout"
+    const all = baseurl + "/all"
     const create = "http://localhost:8080/dashboard/create"
-    const redirect = baseurl + "/:id"
 
     const form = document.querySelector("#form")
-    const formredirect = document.querySelector("#formredirect")
     const formlogout = document.querySelector("#formlogout")
+
+    const table = document.querySelector("#table")
 
     const logout = document.querySelector("#logout")
 
+    const fetchAll = async () => {
+        try {
+            const response = await fetch("/all");
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const reclinks = await response.json();
+
+            if (reclinks.length <= 0) {
+                return
+            }
+            dataToTable(reclinks)
+        }
+        catch (error) {
+            console.error("Fetch operation failed:", error.message);
+        }
+    }
+
     form.addEventListener("submit", async (e) => {
         e.preventDefault()
+        fetchAll()
         const formData = new FormData(form)
 
         console.log(e)
@@ -82,33 +102,8 @@ if logged_in {
         }
     })
 
-    formredirect.addEventListener("submit", async (e) => {
-        e.preventDefault()
-        const formRedirectData = new FormData(formredirect)
-
-        console.log(e)
-        try {
-            const response = await fetch(redirect)
-            console.log(response.ok)
-            if (!response.ok) {
-                throw new Error(`response status: ${response.status}`)
-            }
-
-            const result = await response.redirected
-            if (result) {
-                window.location.href = result
-            }
-
-            console.log(response.redirect)
-        }
-        catch (error) {
-            console.error(error)
-        }
-    })
-
     formlogout.addEventListener("submit", async (e) => {
         e.preventDefault()
-
         const response = await fetch(logouturl, {
             method: "POST",
         });
@@ -123,6 +118,25 @@ if logged_in {
         window.location.href = baseurl + "/"
         console.log(result)
     })
+
+    const dataToTable = (reclinks) => {
+        document.querySelectorAll("#table tr:not(:first-child)")
+            .forEach(row => row.remove());
+        reclinks.forEach(el => {
+            const newRow = table.insertRow(-1);
+            const cell1 = newRow.insertCell(0);
+            const cell2 = newRow.insertCell(1);
+            const cell3 = newRow.insertCell(2);
+
+            console.log(el.OrigUrl);
+
+            cell1.textContent = "http://localhost:8080/" + el["ShortID"];
+            cell2.textContent = el["OrigUrl"];
+            cell3.textContent = el["Expiry"];
+
+        })
+    }
+    fetchAll()
 </script>
 }
 }

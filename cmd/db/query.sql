@@ -28,3 +28,7 @@ RETURNING *;
 SELECT orig_url FROM links
 WHERE short_id = ?
 LIMIT 1;
+
+-- name: GetLinksByID :many
+SELECT id, short_id, orig_url, expiry FROM links
+WHERE user_id = ?

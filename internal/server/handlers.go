@@ -261,3 +261,35 @@ func (h *Handler) RedirectLink(c *echo.Context) error {
 
 	return c.Redirect(http.StatusMovedPermanently, url)
 }
+
+func (h *Handler) Getlinksbyid(c *echo.Context) error {
+	cookie, err := c.Cookie("access_token")
+	if err != nil {
+		c.Logger().Error("Cookie is not found")
+		return echo.NewHTTPError(http.StatusNotFound, "cookie not found")
+	}
+
+	token, err := jwt.ParseWithClaims(cookie.Value, &JWTCustomClaims{}, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, echo.NewHTTPError(http.StatusConflict, "Failed to parse")
+		}
+		return []byte(os.Getenv("SIGNING_KEY")), nil
+	})
+	if err != nil || !token.Valid {
+		return echo.NewHTTPError(http.StatusUnauthorized, "Invalid token")
+	}
+
+	claims, ok := token.Claims.(*JWTCustomClaims)
+	if !ok {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to cast claims")
+	}
+
+	link, err := h.queries.GetLinksByID(c.Request().Context(), claims.UserID)
+	if err != nil {
+		c.Logger().Error("Failed to retrieve the links")
+		return echo.NewHTTPError(http.StatusInternalServerError, "failed to retrieve the links")
+	}
+
+	c.Logger().Info("link details", link)
+	return c.JSON(http.StatusOK, link)
+}

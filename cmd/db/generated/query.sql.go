@@ -71,6 +71,46 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getLinksByID = `-- name: GetLinksByID :many
+SELECT id, short_id, orig_url, expiry FROM links
+WHERE user_id = ?
+`
+
+type GetLinksByIDRow struct {
+	ID      int64
+	ShortID string
+	OrigUrl string
+	Expiry  time.Time
+}
+
+func (q *Queries) GetLinksByID(ctx context.Context, userID int64) ([]GetLinksByIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getLinksByID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetLinksByIDRow
+	for rows.Next() {
+		var i GetLinksByIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ShortID,
+			&i.OrigUrl,
+			&i.Expiry,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getURLByShortCode = `-- name: GetURLByShortCode :one
 SELECT orig_url FROM links
 WHERE short_id = ?
